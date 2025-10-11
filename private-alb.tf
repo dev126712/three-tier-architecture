@@ -1,4 +1,4 @@
-resource "aws_lb" "private-internal-application-load-balancer-1" {
+resource "aws_lb" "private-internal-application-load-balancer" {
   name                       = "load-balancer-1-internal"
   internal                   = true
   load_balancer_type         = "application"
