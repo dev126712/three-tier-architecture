@@ -1,1 +1,1 @@
-![alt text](https://github.com/dev126712/three-tier-architecture/blob/a6deeb0ef222d998a5410b1bc3e5f8fc9b17f665/images/image.png)
+![alt text](https://github.com/dev126712/three-tier-architecture/blob/b95f85d1ac1e9dc95eb5fcaff1d320555b5bb41e/image.png)
