@@ -31,7 +31,7 @@ resource "aws_launch_template" "Apptier-launch-template" {
 
   vpc_security_group_ids = [aws_security_group.apptier-sg.id]
   key_name               = aws_key_pair.baston_host_keypair.key_name
-  
+
   monitoring {
     enabled = true
   }
@@ -72,7 +72,7 @@ resource "aws_autoscaling_group" "Apptier-ASG" {
   health_check_type         = "ELB"
   desired_capacity          = 2
   force_delete              = false
-  target_group_arns = [ aws_lb_target_group.apptier-alb-tg.arn ]  
+  target_group_arns         = [aws_lb_target_group.apptier-alb-tg.arn]
   vpc_zone_identifier       = [for subnet in aws_subnet.private-app-subnet : subnet.id]
   launch_template {
     id      = aws_launch_template.Apptier-launch-template.id

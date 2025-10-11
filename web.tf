@@ -16,7 +16,7 @@ resource "aws_security_group" "webtier-sg" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-  }    
+  }
 
   egress {
     from_port   = 0
@@ -40,11 +40,11 @@ resource "aws_launch_template" "Web-launch-template" {
     associate_public_ip_address = true
     security_groups             = [aws_security_group.public-alb-security-group]
   }
-  
+
   key_name = aws_key_pair.baston_host_keypair.key_name
-  
+
   metadata_options {
-    http_endpoint  = "enabled"
+    http_endpoint = "enabled"
   }
   monitoring {
     enabled = true
@@ -87,7 +87,7 @@ resource "aws_autoscaling_group" "Webtier-ASG" {
   health_check_type         = "ELB"
   desired_capacity          = 2
   force_delete              = false
-  target_group_arns         = [ aws_lb_target_group.webtier-alb-tg.arn ]  
+  target_group_arns         = [aws_lb_target_group.webtier-alb-tg.arn]
   vpc_zone_identifier       = [for subnet in aws_subnet.private-web-subnet : subnet.id]
   launch_template {
     id      = aws_launch_template.Web-launch-template.id
