@@ -8,16 +8,11 @@ variable "vpc_cidr" {
   type    = string
 }
 
-variable "availability-zone-1" {
-  default = "ca-central-1a"
-  type    = string
+variable "availability-zone" {
+  type        = list(string)
+  description = "Availability Zones"
+  default     = ["ca-central-1a", "ca-central-1b"]
 }
-variable "availability-zone-2" {
-  default = "ca-central-1b"
-  type    = string
-}
-
-
 
 variable "public-subnet-bastion-host-cidr-block" {
   default = "10.0.1.0/24"
@@ -29,41 +24,26 @@ variable "public-subnet-nat-gateway-cidr-block" {
   type    = string
 }
 
-variable "private-web-subnet-1-cidr_block" {
-  default = "10.0.3.0/24"
-  type    = string
+variable "private-web-subnet-cidr_block" {
+  type        = list(string)
+  description = "ptivate web subnet cidr block values"
+  default     = ["10.0.3.0/24", "10.0.4.0/24"]
 }
 
-variable "private-web-subnet-2-cidr_block" {
-  default = "10.0.4.0/24"
-  type    = string
+variable "private-app-subnet-cidr_block" {
+  type        = list(string)
+  description = "ptivate app subnet cidr block values"
+  default     = ["10.0.5.0/24", "10.0.6.0/24"]
 }
 
-variable "private-app-subnet-1-cidr_block" {
-  default = "10.0.5.0/24"
-  type    = string
+variable "private-db-subnet-cidr_block" {
+  type        = list(string)
+  description = "ptivate db subnet cidr block values"
+  default     = ["10.0.7.0/24", "10.0.8.0/24"]
 }
-
-variable "private-app-subnet-2-cidr_block" {
-  default = "10.0.6.0/24"
-  type    = string
-}
-
-
-
-variable "private-db-subnet-1-cidr_block" {
-  default = "10.0.7.0/24"
-  type    = string
-}
-
-variable "private-db-subnet-2-cidr_block" {
-  default = "10.0.8.0/24"
-  type    = string
-}
-
 
 variable "amis" {
-  default = ""
+  default = "ami-0f39ffd6e446bf727"
   type    = string
 }
 
