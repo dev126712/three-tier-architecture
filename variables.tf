@@ -60,3 +60,14 @@ variable "private-db-subnet-2-cidr_block" {
   default = "10.0.8.0/24"
   type    = string
 }
+
+
+variable "amis" {
+  default = ""
+  type    = string
+}
+
+variable "instance_type" {
+  default = "t2.micro"
+  type    = string
+}
