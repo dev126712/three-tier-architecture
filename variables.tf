@@ -21,10 +21,12 @@ variable "availability-zone-2" {
 
 variable "public-subnet-bastion-host-cidr-block" {
   default = "10.0.1.0/24"
+  type    = string
 }
 
 variable "public-subnet-nat-gateway-cidr-block" {
   default = "10.0.2.0/24"
+  type    = string
 }
 
 variable "private-web-subnet-1-cidr_block" {
