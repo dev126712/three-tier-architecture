@@ -1,5 +1,4 @@
 resource "aws_eip" "eip_nat_gateway" {
-
   tags = {
     Name = "elastic ip nat gateway"
   }
