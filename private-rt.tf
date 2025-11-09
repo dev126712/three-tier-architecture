@@ -21,14 +21,14 @@ resource "aws_route_table_association" "private-web-subnet-1-route-table-associa
 
 
 resource "aws_route_table_association" "private-app-subnet-1-route-table-association" {
-  for_each      = [for subnet in aws_subnet.private-app-subnet : subnet.id => subnet]
+  for_each      = { for subnet in aws_subnet.private-app-subnet : subnet.id => subnet }
   subnet_id      = each.key
   route_table_id = aws_route_table.public-route-table.id
 }
 
 
 resource "aws_route_table_association" "private-db-subnet-1-route-table-association" {
-  for_each      = [for subnet in aws_subnet.private-db-subnet  subnet.id => subnet]
+  for_each      = { for subnet in aws_subnet.private-db-subnet  subnet.id => subnet }
   subnet_id      = each.key
   route_table_id = aws_route_table.public-route-table.id
 }
