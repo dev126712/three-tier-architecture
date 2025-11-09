@@ -1,0 +1,16 @@
+name: Deploy Terraform
+on: 
+  push:
+    paths: 
+      - '**.tf'
+jobs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v3
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+      - name: Terraform init
+        run: terraform init
+      - name: Terraform Plan
+        run: terraform plan
