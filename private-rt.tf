@@ -13,7 +13,8 @@ resource "aws_route_table" "private-route-table" {
 
 
 resource "aws_route_table_association" "private-web-subnet-1-route-table-association" {
-  subnet_id      = [for subnet in aws_subnet.private-web-subnet : subnet.id]
+  for_each       = { for subnet in aws_subnet.private-web-subnet : subnet.id => subnet }
+  subnet_id      = each.key
   route_table_id = aws_route_table.public-route-table.id
 }
 
