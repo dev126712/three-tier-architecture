@@ -38,7 +38,7 @@ resource "aws_launch_template" "Web-launch-template" {
 
   network_interfaces {
     associate_public_ip_address = true
-    security_groups             = [aws_security_group.public-alb-security-group]
+    security_groups             = [aws_security_group.public-alb-security-group.id]
   }
 
   key_name = aws_key_pair.baston_host_keypair.key_name
