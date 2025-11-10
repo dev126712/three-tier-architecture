@@ -12,7 +12,7 @@ resource "aws_security_group" "public-alb-security-group" {
   }
 
   ingress {
-    description = "https access"
+    description = "https access" 
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
