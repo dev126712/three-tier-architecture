@@ -21,7 +21,7 @@ resource "aws_security_group" "public-alb-security-group" {
 
 
   egress {
-    escription = "allows egress from everywhare" 
+    description = "allows egress from everywhare" 
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
