@@ -28,7 +28,7 @@ resource "aws_route_table_association" "private-app-subnet-1-route-table-associa
 
 
 resource "aws_route_table_association" "private-db-subnet-1-route-table-association" {
-  for_each      = toset(var.private-db-subnet-cidr_block)}
+  for_each      = toset(var.private-db-subnet-cidr_block)
   subnet_id      = aws_subnet.private-db-subnet[index(var.private-db-subnet-cidr_block, each.key)].id
   route_table_id = aws_route_table.public-route-table.id
 }
