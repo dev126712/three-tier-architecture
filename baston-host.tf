@@ -38,6 +38,11 @@ metadata_options {
   instance_metadata_tags   = "enabled"
 }
 
+root_block_device {
+  encrypted = true
+}
+
+
 ebs_optimized = true
 
 monitoring {
