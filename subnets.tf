@@ -2,7 +2,7 @@ resource "aws_subnet" "public-subnet-bastion-host" {
   vpc_id                  = aws_vpc.vpc_project.id
   cidr_block              = var.public-subnet-bastion-host-cidr-block
   availability_zone       = var.availability-zone[0]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags = {
     Name = "Public Subnet - Bastion Host"
   }
@@ -14,7 +14,7 @@ resource "aws_subnet" "public-subnet-nat-gateway" {
   vpc_id                  = aws_vpc.vpc_project.id
   cidr_block              = var.public-subnet-nat-gateway-cidr-block
   availability_zone       = var.availability-zone[1]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
 
   tags = {
     Name = "Public Subnet - Nat Gateways"
