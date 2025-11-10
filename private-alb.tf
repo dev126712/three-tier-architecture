@@ -6,6 +6,8 @@ resource "aws_lb" "private-internal-application-load-balancer" {
   subnets                    = [for subnet in aws_subnet.private-web-subnet : subnet.id]
   enable_deletion_protection = true
 
+  drop_invalid_header_fields = true
+
   tags = {
     Name = "Entry App Load Balancer"
   }
