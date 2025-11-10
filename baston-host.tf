@@ -45,9 +45,8 @@ root_block_device {
 
 ebs_optimized = true
 
-monitoring {
-enabled = true
-}
+monitoring = true
+
 
   tags = {
     Name = "Bastion Host"
