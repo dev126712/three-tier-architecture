@@ -13,24 +13,22 @@ resource "aws_route_table" "private-route-table" {
 
 
 resource "aws_route_table_association" "private-web-subnet-1-route-table-association" {
-  for_each       = { for subnet in aws_subnet.private-web-subnet : subnet.id => subnet }
-  subnet_id      = each.key
+  for_each       = toset(var.private-web-subnet-cidr_block)
+  subnet_id      = aws_subnet.private-web-subnet[index(var.private-web-subnet-cidr_block, each.key)].id
   route_table_id = aws_route_table.public-route-table.id
 }
 
 
 
 resource "aws_route_table_association" "private-app-subnet-1-route-table-association" {
-  for_each      = { for subnet in aws_subnet.private-app-subnet : subnet.id => subnet }
-  subnet_id      = each.key
+  for_each      = toset(var.private-app-subnet-cidr_bloc)
+  subnet_id      = aws_subnet.private-app-subnet[index(var.private-app-subnet-cidr_block, each.key)].id
   route_table_id = aws_route_table.public-route-table.id
 }
 
 
 resource "aws_route_table_association" "private-db-subnet-1-route-table-association" {
-  for_each      = { for subnet in aws_subnet.private-db-subnet : subnet.id => subnet }
-  subnet_id      = each.key
+  for_each      = toset(var.private-db-subnet-cidr_block)}
+  subnet_id      = aws_subnet.private-db-subnet[index(var.private-db-subnet-cidr_block, each.key)].id
   route_table_id = aws_route_table.public-route-table.id
 }
-
-
