@@ -66,7 +66,7 @@ resource "aws_security_group" "internal-1-alb-security-group" {
     description = "allows egress from everywhare" 
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
+    protocol    = 443"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
