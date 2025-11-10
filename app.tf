@@ -37,6 +37,12 @@ resource "aws_launch_template" "Apptier-launch-template" {
     enabled = true
   }
 
+  metadata_options {
+    http_tokens              = "required" # Forces IMDSv2
+    http_endpoint            = "enabled"
+    instance_metadata_tags   = "enabled"
+  }
+
   tag_specifications {
     resource_type = "instance"
     tags = {
