@@ -24,7 +24,17 @@ jobs:
         run: terraform fmt
         
       - name: Terraform validate
-        run: terraform validate  
+        run: terraform validate 
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive  
+
+      - name: Run Checkov Security Scan
+        uses: bridgecrewio/checkov-action@v1
+        with:
+          directory: .
+          output_format: cli
+          soft_fail: true # Start with soft-fail and enforce it later
 
       - name: Terraform Plan
         run: terraform plan  
