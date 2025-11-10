@@ -32,14 +32,14 @@ resource "aws_instance" "bastion-host" {
   security_groups             = [aws_security_group.baston-host-alb-security-group.id]
   subnet_id                   = aws_subnet.public-subnet-bastion-host.id
 
-  metadata_options {
-    http_tokens              = "required" # Forces IMDSv2
-    http_endpoint            = "enabled"
-    instance_metadata_tags   = "enabled"
-  }
-   monitoring {
-    enabled = true
-  }
+metadata_options {
+  http_tokens              = "required" # Forces IMDSv2
+  http_endpoint            = "enabled"
+  instance_metadata_tags   = "enabled"
+}
+ monitoring {
+  enabled = true
+}
 
   tags = {
     Name = "Bastion Host"
