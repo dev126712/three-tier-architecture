@@ -42,6 +42,12 @@ resource "aws_launch_template" "Web-launch-template" {
     security_groups             = [aws_security_group.public-alb-security-group.id]
   }
 
+  metadata_options {
+    http_tokens              = "required" # Forces IMDSv2
+    http_endpoint            = "enabled"
+    instance_metadata_tags   = "enabled"
+  }
+
   key_name = aws_key_pair.baston_host_keypair.key_name
 
   metadata_options {
