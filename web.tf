@@ -65,8 +65,8 @@ resource "aws_launch_template" "Web-launch-template" {
 # Create Webtier application load balancer target group
 resource "aws_lb_target_group" "webtier-alb-tg" {
   name     = "Webtier-ALB-TG"
-  port     = 80
-  protocol = "HTTP"
+  port     = 443
+  protocol = "HTTPS"
   vpc_id   = aws_vpc.vpc_project.id
 }
 
