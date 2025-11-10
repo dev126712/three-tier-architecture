@@ -54,8 +54,8 @@ resource "aws_launch_template" "Apptier-launch-template" {
 # Create Apptier application load balancer target group
 resource "aws_lb_target_group" "apptier-alb-tg" {
   name     = "Apptier-ALB-TG"
-  port     = 80
-  protocol = "HTTP"
+  port     = 443
+  protocol = "HTTPS"
   vpc_id   = aws_vpc.vpc_project.id
 
   health_check {
