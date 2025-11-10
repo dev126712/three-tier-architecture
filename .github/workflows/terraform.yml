@@ -3,7 +3,7 @@ on:
   push:
     paths: 
       - '**.tf'
-      - '.github/workflows/**.yml'
+      - '.github/workflows/terraform.yml'
 jobs:
   verify:
     env:
