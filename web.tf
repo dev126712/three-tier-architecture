@@ -38,7 +38,7 @@ resource "aws_launch_template" "Web-launch-template" {
   instance_type = var.instance_type
 
   network_interfaces {
-    associate_public_ip_address = true
+    associate_public_ip_address = false
     security_groups             = [aws_security_group.public-alb-security-group.id]
   }
 
@@ -46,8 +46,11 @@ resource "aws_launch_template" "Web-launch-template" {
 
   key_name = aws_key_pair.baston_host_keypair.key_name
 
-  metadata_options {
-    http_endpoint = "enabled"
+ metadata_options {
+    http_endpoint            = "enabled"
+    http_tokens              = "required" # Forces IMDSv2
+    instance_metadata_tags   = "enabled"  # Recommended to fully comply with best practices
+    # ------------------------
   }
   monitoring {
     enabled = true
