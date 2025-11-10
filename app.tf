@@ -62,8 +62,8 @@ resource "aws_lb_target_group" "apptier-alb-tg" {
 # Create Apptier application load balancer listener
 resource "aws_lb_listener" "apptier-alb" {
   load_balancer_arn = aws_lb.private-internal-application-load-balancer.arn
-  port              = "80"
-  protocol          = "HTTP"
+  port              = 443"
+  protocol          = "HTTPS"
 
   default_action {
     type             = "forward"
