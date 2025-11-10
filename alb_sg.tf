@@ -8,7 +8,7 @@ resource "aws_security_group" "public-alb-security-group" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["28.8.7.6/32"]
   }
 
   ingress {
