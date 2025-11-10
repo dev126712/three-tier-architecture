@@ -32,7 +32,6 @@ jobs:
       - name: Run Checkov Security Scan
         uses: bridgecrewio/checkov-action@v1
         with:
-          directory: .
           output_format: cli
           soft_fail: true # Start with soft-fail and enforce it later
 
