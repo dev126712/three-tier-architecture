@@ -11,7 +11,7 @@ resource "aws_security_group" "apptier-sg" {
     security_groups = [aws_security_group.public-alb-security-group.id]
   }
   egress {
-    description     = allows egress from everywhere"
+    description     = "allows egress from everywhere"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
