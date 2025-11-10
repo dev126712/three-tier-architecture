@@ -37,8 +37,11 @@ metadata_options {
   http_endpoint            = "enabled"
   instance_metadata_tags   = "enabled"
 }
- monitoring {
-  enabled = true
+
+ebs_optimized = true
+
+monitoring {
+enabled = true
 }
 
   tags = {
