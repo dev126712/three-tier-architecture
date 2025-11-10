@@ -57,6 +57,17 @@ resource "aws_lb_target_group" "apptier-alb-tg" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.vpc_project.id
+
+  health_check {
+      path                = "/" # The default path to check
+      protocol            = "HTTP"
+      port                = "traffic-port" # Use the port defined for the target group (80)
+      healthy_threshold   = 3  # Number of consecutive successful checks required to transition to Healthy
+      unhealthy_threshold = 3  # Number of consecutive failed checks required to transition to Unhealthy
+      timeout             = 5  # Time (in seconds) to wait for a response
+      interval            = 30 # Time (in seconds) between health checks
+      matcher             = "200" # Expected HTTP response code (200 OK)
+    }
 }
 
 # Create Apptier application load balancer listener
