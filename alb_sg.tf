@@ -63,6 +63,7 @@ resource "aws_security_group" "internal-1-alb-security-group" {
   }
 
   egress {
+    description = "allows egress from everywhare" 
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
