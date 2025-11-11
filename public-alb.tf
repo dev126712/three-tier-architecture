@@ -35,20 +35,6 @@ resource "aws_wafv2_web_acl" "web_acl" {
     allow {} 
   }
 
-  rule {
-    name     = "AWSManagedRulesCommonRuleSet"
-    priority = 1
-    
-    # Add override_action: This is best practice for managed groups
-    override_action {
-      none {} # Applies the managed group's default action
-statement {
-      managed_rule_group {
-        name        = "AWSManagedRulesCommonRuleSet"
-        vendor_name = "AWS"
-      }
-    }
-    }
 
   
     
