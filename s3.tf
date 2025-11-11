@@ -23,9 +23,9 @@ resource "aws_s3_bucket" "access_logs_replica_bucket" {
   # Change the bucket name to be globally unique
   bucket = "tf-project-access-logs-replica-12345"
 
-  versioning {
-    enabled = true
-  }
+ # versioning {
+  #  enabled = true
+  #}
 
   acl = "private"
 }
