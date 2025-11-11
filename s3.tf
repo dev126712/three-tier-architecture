@@ -16,23 +16,24 @@ resource "aws_s3_bucket" "vpc_flow_logs_bucket" {
     }
   }
 
-server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        # Use AES256 for basic SSE-S3 encryption if KMS is not desired, OR:
-        # sse_algorithm     = "aws:kms"
-        # kms_master_key_id = aws_kms_key.s3_bucket_key.arn 
-        
-        sse_algorithm     = "AES256" 
-      }
-    }
-  }
   
   tags = {
     Name = "VPC Flow Logs Destination"
   }
 }
+resource "aws_s3_bucket_server_side_encryption_configuration" "vpc_flow_logs_bucket_encryption" {
+  # Link to the main S3 bucket resource
+  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id 
 
+  # --- New dedicated resource block ---
+  rule {
+    apply_server_side_encryption_by_default {
+      # Setting AES256 for Flow Logs (which don't support KMS)
+      sse_algorithm = "AES256" 
+    }
+  }
+  # ------------------------------------
+}
 resource "aws_flow_log" "vpc_project_flow_log" {
   traffic_type    = "ALL" 
   vpc_id          = aws_vpc.vpc_project.id
