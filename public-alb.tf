@@ -103,8 +103,7 @@ resource "aws_wafv2_web_acl_association" "public_alb_waf_association" {
 resource "aws_wafv2_web_acl_logging_configuration" "public_alb_waf_logging" {
   resource_arn = aws_wafv2_web_acl.web_acl.arn
 
-  log_destination_configs = [data.aws_s3_bucket.
-.arn]
+  log_destination_configs = [data.aws_s3_bucket.arn]
 
   redacted_fields {
     single_header {
