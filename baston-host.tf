@@ -31,6 +31,7 @@ resource "aws_instance" "bastion-host" {
   key_name                    = aws_key_pair.baston_host_keypair.key_name
   security_groups             = [aws_security_group.baston-host-alb-security-group.id]
   subnet_id                   = aws_subnet.public-subnet-bastion-host.id
+  iam_instance_profile        = aws_iam_instance_profile.bastion_host_profile.name
 
 metadata_options {
   http_tokens              = "required" # Forces IMDSv2
@@ -51,4 +52,27 @@ monitoring = true
   tags = {
     Name = "Bastion Host"
   }
+}
+
+resource "aws_iam_role" "bastion_host_role" {
+  name = "bastion-host-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+
+resource "aws_iam_instance_profile" "bastion_host_profile" {
+  name = "bastion-host-profile"
+  role = aws_iam_role.bastion_host_role.name
 }
