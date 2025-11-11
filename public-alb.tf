@@ -44,13 +44,7 @@ resource "aws_wafv2_web_acl" "web_acl" {
       none {} # Applies the managed group's default action
     }
 
-    # The statement block MUST contain the rule type (managed_rule_group)
-    statement {
-      managed_rule_group {
-        name        = "AWSManagedRulesCommonRuleSet"
-        vendor_name = "AWS"
-      }
-    }
+  
     
     visibility_config {
       cloudwatch_metrics_enabled = true
