@@ -103,8 +103,8 @@ resource "aws_wafv2_web_acl_association" "public_alb_waf_association" {
 resource "aws_wafv2_web_acl_logging_configuration" "public_alb_waf_logging" {
   resource_arn = aws_wafv2_web_acl.web_acl.arn
 
-  # NOTE: You must replace 'data.aws_s3_bucket.waf_log_destination' with your actual log destination ARN
-  log_destination_configs = [data.aws_s3_bucket.waf_log_destination.arn]
+  log_destination_configs = [data.aws_s3_bucket.
+.arn]
 
   redacted_fields {
     single_header {

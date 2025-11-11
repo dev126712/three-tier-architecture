@@ -1,6 +1,5 @@
 resource "aws_s3_bucket" "vpc_flow_logs_bucket" {
   bucket = "tf-project-vpc-flow-logs-unique-name-12345"
-  acl    = "private"
 
   replication_configuration {
     role = aws_iam_role.replication_role.arn
