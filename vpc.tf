@@ -9,9 +9,9 @@ resource "aws_vpc" "vpc_project" {
 }
 
 resource "aws_default_security_group" "default_sg_restrict" {
-  vpc_id = aws_vpc.vpc_project.id
+  vpc_id  = aws_vpc.vpc_project.id
   ingress = []
-  egress = []
+  egress  = []
 
   tags = {
     Name = "Default Security Group - Restricted"

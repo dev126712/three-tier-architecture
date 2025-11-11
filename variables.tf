@@ -53,6 +53,6 @@ variable "instance_type" {
 }
 
 variable "web_tier_certificate_arn" {
-default = "certificate.example"
-type = string
+  default = "certificate.example"
+  type    = string
 }

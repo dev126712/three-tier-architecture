@@ -7,11 +7,11 @@ resource "aws_security_group" "apptier-sg" {
     description     = "Allow traffic from apptier alb"
     from_port       = 0
     to_port         = 0
-    protocol        = "443" 
+    protocol        = "443"
     security_groups = [aws_security_group.public-alb-security-group.id]
   }
   egress {
-    description     = "allows egress from everywhere"
+    description = "allows egress from everywhere"
     from_port   = 0
     to_port     = 0
     protocol    = "443"
@@ -38,9 +38,9 @@ resource "aws_launch_template" "Apptier-launch-template" {
   }
 
   metadata_options {
-    http_tokens              = "required" # Forces IMDSv2
-    http_endpoint            = "enabled"
-    instance_metadata_tags   = "enabled"
+    http_tokens            = "required" # Forces IMDSv2
+    http_endpoint          = "enabled"
+    instance_metadata_tags = "enabled"
   }
 
   tag_specifications {
@@ -59,15 +59,15 @@ resource "aws_lb_target_group" "apptier-alb-tg" {
   vpc_id   = aws_vpc.vpc_project.id
 
   health_check {
-      path                = "/" # The default path to check
-      protocol            = "HTTP"
-      port                = "traffic-port" # Use the port defined for the target group (80)
-      healthy_threshold   = 3  # Number of consecutive successful checks required to transition to Healthy
-      unhealthy_threshold = 3  # Number of consecutive failed checks required to transition to Unhealthy
-      timeout             = 5  # Time (in seconds) to wait for a response
-      interval            = 30 # Time (in seconds) between health checks
-      matcher             = "200" # Expected HTTP response code (200 OK)
-    }
+    path                = "/" # The default path to check
+    protocol            = "HTTP"
+    port                = "traffic-port" # Use the port defined for the target group (80)
+    healthy_threshold   = 3              # Number of consecutive successful checks required to transition to Healthy
+    unhealthy_threshold = 3              # Number of consecutive failed checks required to transition to Unhealthy
+    timeout             = 5              # Time (in seconds) to wait for a response
+    interval            = 30             # Time (in seconds) between health checks
+    matcher             = "200"          # Expected HTTP response code (200 OK)
+  }
 }
 
 # Create Apptier application load balancer listener

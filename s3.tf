@@ -1,6 +1,7 @@
 resource "aws_s3_bucket" "vpc_flow_logs_bucket" {
   bucket = "tf-project-vpc-flow-logs-unique-name-12345"
- 
+  acl    = "private"
+
   replication_configuration {
     role = aws_iam_role.replication_role.arn
     rules {
@@ -14,57 +15,71 @@ resource "aws_s3_bucket" "vpc_flow_logs_bucket" {
     }
   }
 
-  
   tags = {
     Name = "VPC Flow Logs Destination"
   }
 }
-# Fix CKV_AWS_145 for Source Bucket
-resource "aws_s3_bucket_server_side_encryption_configuration" "vpc_flow_logs_bucket_encryption" {
-  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256" # Using SSE-S3 as Flow Logs don't support KMS
-    }
+
+resource "aws_s3_bucket" "access_logs_replica_bucket" {
+  # Change the bucket name to be globally unique
+  bucket = "tf-project-access-logs-replica-12345"
+
+  versioning {
+    enabled = true
   }
+
+  acl = "private"
 }
 
-# Fix CKV_AWS_145 for Destination Bucket
-resource "aws_s3_bucket_server_side_encryption_configuration" "vpc_flow_logs_dest_bucket_encryption" {
-  bucket = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-resource "aws_flow_log" "vpc_project_flow_log" {
-  traffic_type    = "ALL" 
-  vpc_id          = aws_vpc.vpc_project.id
-  log_destination = aws_s3_bucket.vpc_flow_logs_bucket.arn 
-  log_destination_type = "s3" 
-  max_aggregation_interval = 60 
+resource "aws_s3_bucket" "vpc_flow_logs_dest_bucket" {
+  bucket = "tf-project-vpc-flow-logs-dest-12345"
+  acl    = "private"
 }
 
-resource "aws_sqs_queue" "s3_events_queue" {
-  name                      = "vpc-flow-log-events-queue"
-  delay_seconds             = 0
-  max_message_size          = 262144
-  message_retention_seconds = 345600
-  kms_master_key_id         = "alias/aws/sqs"
+resource "aws_s3_bucket" "access_logs_bucket" {
+  bucket = "tf-project-vpc-flow-logs-dest-12385756465445"
 }
 
-resource "aws_s3_bucket_notification" "vpc_flow_log_notification" {
-  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id 
+# --- KMS and IAM Resources ---
 
-  queue {
-    id        = "flow_log_objects"
-    queue_arn = aws_sqs_queue.s3_events_queue.arn
-    events    = ["s3:ObjectCreated:*"] 
-  }
-  
-  depends_on = [aws_s3_bucket.vpc_flow_logs_bucket]
+resource "aws_kms_key" "s3_bucket_key" {
+  description             = "KMS Key for S3 Flow Logs Encryption"
+  deletion_window_in_days = 10
+  enable_key_rotation     = true # FIX: CKV_AWS_7
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions",
+        Effect = "Allow",
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" # Requires data "aws_caller_identity" "current" {}
+        },
+        Action   = "kms:*",
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow S3 to Encrypt/Decrypt for SQS"
+        Effect = "Allow"
+        Principal = {
+          Service = "s3.amazonaws.com"
+        },
+        Action = [
+          "kms:GenerateDataKey",
+          "kms:Decrypt"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
 }
+
+resource "aws_kms_alias" "s3_kms_alias" {
+  name          = "alias/s3-bucket-key"
+  target_key_id = aws_kms_key.s3_bucket_key.key_id
+}
+
 resource "aws_iam_role" "replication_role" {
   name = "s3-replication-role"
   assume_role_policy = jsonencode({
@@ -82,8 +97,6 @@ resource "aws_iam_role" "replication_role" {
 resource "aws_iam_policy" "replication_policy" {
   name        = "S3ReplicationPolicy-${aws_s3_bucket.vpc_flow_logs_bucket.id}"
   description = "IAM Policy for S3 Cross-Region Replication"
-
-  # --- Required 'policy' argument with JSON document ---
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -109,7 +122,6 @@ resource "aws_iam_policy" "replication_policy" {
           "s3:GetObjectVersionAcl",
           "s3:GetObjectVersionTagging"
         ]
-        # Must target objects within the bucket
         Resource = [
           "${aws_s3_bucket.vpc_flow_logs_bucket.arn}/*"
         ]
@@ -123,7 +135,6 @@ resource "aws_iam_policy" "replication_policy" {
           "s3:ReplicateDelete",
           "s3:ReplicateTags"
         ]
-        # Must target objects within the destination bucket
         Resource = [
           "${aws_s3_bucket.vpc_flow_logs_dest_bucket.arn}/*"
         ]
@@ -131,31 +142,40 @@ resource "aws_iam_policy" "replication_policy" {
     ]
   })
 }
-# Attach policy to role
+
 resource "aws_iam_role_policy_attachment" "replication_attach" {
   role       = aws_iam_role.replication_role.name
   policy_arn = aws_iam_policy.replication_policy.arn
 }
 
-resource "aws_s3_bucket" "vpc_flow_logs_dest_bucket" {
-  bucket = "tf-project-vpc-flow-logs-dest-12345"
-}
-resource "aws_s3_bucket_versioning" "vpc_flow_logs_bucket_versioning" {
-  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id 
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-resource "aws_s3_bucket_versioning" "vpc_flow_logs_dest_bucket_versioning" {
-  # Link to the destination S3 bucket resource
-  bucket = aws_s3_bucket.vpc_flow_logs_dest_bucket.id 
+# --- SQS Queue and Flow Log ---
 
-  versioning_configuration {
-    status = "Enabled"
-  }
+resource "aws_sqs_queue" "s3_events_queue" {
+  name                      = "vpc-flow-log-events-queue"
+  delay_seconds             = 0
+  max_message_size          = 262144
+  message_retention_seconds = 345600
+  kms_master_key_id         = aws_kms_key.s3_bucket_key.arn
 }
 
-# Fix CKV2_AWS_6 for Source Bucket
+resource "aws_flow_log" "vpc_project_flow_log" {
+  traffic_type             = "ALL"
+  vpc_id                   = aws_vpc.vpc_project.id
+  log_destination          = aws_s3_bucket.vpc_flow_logs_bucket.arn
+  log_destination_type     = "s3"
+  max_aggregation_interval = 60
+}
+
+# --- Access Block Configuration (CKV2_AWS_6) ---
+
+resource "aws_s3_bucket_public_access_block" "access_logs_bucket_pab" {
+  bucket                  = aws_s3_bucket.access_logs_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
 resource "aws_s3_bucket_public_access_block" "vpc_flow_logs_bucket_pab" {
   bucket                  = aws_s3_bucket.vpc_flow_logs_bucket.id
   block_public_acls       = true
@@ -164,7 +184,6 @@ resource "aws_s3_bucket_public_access_block" "vpc_flow_logs_bucket_pab" {
   restrict_public_buckets = true
 }
 
-# Fix CKV2_AWS_6 for Destination Bucket
 resource "aws_s3_bucket_public_access_block" "vpc_flow_logs_dest_bucket_pab" {
   bucket                  = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
   block_public_acls       = true
@@ -172,34 +191,85 @@ resource "aws_s3_bucket_public_access_block" "vpc_flow_logs_dest_bucket_pab" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
-# Fix CKV2_AWS_61 for Source Bucket
-resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_bucket_lifecycle" {
+
+# FIX CKV2_AWS_6: Public Access Block for Replica Bucket (Missing in your code)
+resource "aws_s3_bucket_public_access_block" "access_logs_replica_pab" {
+  bucket                  = aws_s3_bucket.access_logs_replica_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# --- Versioning Configuration (Needed for Replication) ---
+
+resource "aws_s3_bucket_versioning" "vpc_flow_logs_bucket_versioning" {
+  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "vpc_flow_logs_dest_bucket_versioning" {
+  bucket = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "access_logs_bucket_versioning" {
+  bucket = aws_s3_bucket.access_logs_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# --- Lifecycle Configuration (CKV2_AWS_61) ---
+
+# FIX CKV2_AWS_61: Lifecycle Configuration for VPC Flow Logs Source Bucket (Missing in your code)
+resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_source_lifecycle" {
   bucket = aws_s3_bucket.vpc_flow_logs_bucket.id
   rule {
-    id     = "ArchiveOldLogs"
+    id     = "FlowLogRetentionPolicy"
     status = "Enabled"
-    # Transition to cheaper storage after 60 days
     transition {
-      days          = 60
+      days          = 90
+      storage_class = "GLACIER"
+    }
+    expiration {
+      days = 365
+    }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7 
+    }
+  }
+}
+
+
+resource "aws_s3_bucket_lifecycle_configuration" "access_logs_bucket_lifecycle" {
+  bucket = aws_s3_bucket.access_logs_bucket.id
+  rule {
+    id     = "LogRetentionPolicy"
+    status = "Enabled"
+    # Transition to Glacier after 90 days
+    transition {
+      days          = 90
       storage_class = "GLACIER"
     }
     # Delete logs after 365 days
     expiration {
       days = 365
     }
- abort_incomplete_multipart_upload {
-      days_after_initiation = 7 # Abort failed uploads older than 7 days
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7 
     }
   }
-
- 
 }
 
-# Fix CKV2_AWS_61 for Destination Bucket
 resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_dest_bucket_lifecycle" {
   bucket = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
   rule {
-    id     = "ArchiveOldLogsDest"
+    id     = "DeleteOldReplicaLogs"
     status = "Enabled"
     transition {
       days          = 60
@@ -208,34 +278,150 @@ resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_dest_bucket_life
     expiration {
       days = 365
     }
-abort_incomplete_multipart_upload {
-      days_after_initiation = 7 
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+# FIX CKV2_AWS_61: Lifecycle Configuration for Replica Bucket (Missing in your code)
+resource "aws_s3_bucket_lifecycle_configuration" "access_logs_replica_lifecycle" {
+  bucket = aws_s3_bucket.access_logs_replica_bucket.id
+  rule {
+    id     = "ReplicaLogRetention"
+    status = "Enabled"
+    expiration {
+      days = 365 # Keep logs for one year
+    }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
+# --- Server Side Encryption Configuration (CKV_AWS_145) ---
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "vpc_flow_logs_bucket_encryption" {
+  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_bucket_key.arn
+    }
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "vpc_flow_logs_dest_bucket_encryption" {
+  bucket = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_bucket_key.arn
+    }
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs_bucket_kms_encryption" {
+  bucket = aws_s3_bucket.access_logs_bucket.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_bucket_key.arn
+    }
+  }
+}
+
+# FIX CKV_AWS_145: KMS Encryption for Replica Bucket (Missing in your code)
+resource "aws_s3_bucket_server_side_encryption_configuration" "access_logs_replica_encryption" {
+  bucket = aws_s3_bucket.access_logs_replica_bucket.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.s3_bucket_key.arn 
+    }
+  }
+}
+
+# --- Logging Configuration (CKV_AWS_18) ---
+
+resource "aws_s3_bucket_logging" "vpc_flow_logs_source_logging" { # Renamed from source_bucket_logging to avoid conflict
+  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id
+  target_bucket = aws_s3_bucket.access_logs_bucket.id
+  target_prefix = "s3-access-logs-source/"
+}
+
+resource "aws_s3_bucket_logging" "vpc_flow_logs_dest_logging" { # Renamed from source_bucket_logging to avoid conflict
+  bucket = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
+  target_bucket = aws_s3_bucket.access_logs_bucket.id
+  target_prefix = "s3-access-logs-dest/"
+}
+
+# FIX CKV_AWS_18: Access Logging for Replica Bucket (Missing in your code)
+resource "aws_s3_bucket_logging" "access_logs_replica_logging" {
+  bucket = aws_s3_bucket.access_logs_replica_bucket.id
+  target_bucket = aws_s3_bucket.access_logs_bucket.id 
+  target_prefix = "replica-access-logs/"
+}
+
+# --- Replication Configuration ---
+
+resource "aws_s3_bucket_replication_configuration" "access_logs_replication" {
+  bucket = aws_s3_bucket.access_logs_bucket.id
+  role   = aws_iam_role.replication_role.arn
+
+  rule {
+    id     = "replicate-all-access-logs"
+    status = "Enabled"
+
+    filter {
+      prefix = ""
+    }
+
+    destination {
+      bucket        = aws_s3_bucket.access_logs_replica_bucket.arn
+      storage_class = "STANDARD"
     }
   }
 
-  
+  depends_on = [
+    aws_s3_bucket_versioning.access_logs_bucket_versioning,
+  ]
 }
-resource "aws_kms_key" "s3_bucket_key" {
-  description             = "KMS Key for S3 Flow Logs Encryption"
-  deletion_window_in_days = 10
-  
-  # --- FIX for CKV_AWS_7 ---
-  enable_key_rotation     = true
-  
-  # --- FIX for CKV2_AWS_64 ---
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid    = "Enable IAM User Permissions",
-        Effect = "Allow",
-        Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" # Requires data "aws_caller_identity" "current" {}
-        },
-        Action   = "kms:*",
-        Resource = "*"
-      },
-      # (Add statements for S3 and other services that need to use the key)
-    ]
-  })
+
+# --- Event Notification Configuration (CKV2_AWS_62) ---
+
+resource "aws_s3_bucket_notification" "vpc_flow_logs_source_notification" { # Renamed from bucket_notification
+  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id
+  queue {
+    queue_arn = aws_sqs_queue.s3_events_queue.arn
+    events    = ["s3:ObjectCreated:*"]
+  }
+  depends_on = [aws_s3_bucket.vpc_flow_logs_bucket]
+}
+
+resource "aws_s3_bucket_notification" "vpc_flow_logs_dest_notification" { # Renamed from vpc_flow_log_notification
+  bucket = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
+  queue {
+    queue_arn = aws_sqs_queue.s3_events_queue.arn
+    events    = ["s3:ObjectCreated:*"]
+  }
+  depends_on = [aws_s3_bucket.vpc_flow_logs_dest_bucket]
+}
+
+# FIX CKV2_AWS_62: Event Notifications for Replica Bucket (Missing in your code)
+resource "aws_s3_bucket_notification" "access_logs_replica_notification" {
+  bucket = aws_s3_bucket.access_logs_replica_bucket.id
+  queue {
+    queue_arn = aws_sqs_queue.s3_events_queue.arn
+    events    = ["s3:ObjectCreated:*"]
+  }
+}
+
+# FIX CKV2_AWS_62: Event Notifications for Access Logs Bucket (Missing in your code)
+resource "aws_s3_bucket_notification" "access_logs_bucket_notification" {
+  bucket = aws_s3_bucket.access_logs_bucket.id
+  queue {
+    queue_arn = aws_sqs_queue.s3_events_queue.arn
+    events    = ["s3:ObjectCreated:*"]
+  }
 }

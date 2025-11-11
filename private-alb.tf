@@ -9,9 +9,9 @@ resource "aws_lb" "private-internal-application-load-balancer" {
   access_logs {
     enabled = true
     # IMPORTANT: Replace 'your-alb-logs-bucket-name' with the actual S3 bucket name
-    bucket  = "your-alb-logs-bucket-name" 
+    bucket = "your-alb-logs-bucket-name"
     # Optional: Add a prefix to organize logs within the bucket
-    prefix  = "internal-alb-access" 
+    prefix = "internal-alb-access"
   }
 
   drop_invalid_header_fields = true

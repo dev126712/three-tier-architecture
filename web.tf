@@ -42,14 +42,14 @@ resource "aws_launch_template" "Web-launch-template" {
     security_groups             = [aws_security_group.webtier-sg.id]
   }
 
- 
+
 
   key_name = aws_key_pair.baston_host_keypair.key_name
 
- metadata_options {
-    http_endpoint            = "enabled"
-    http_tokens              = "required" # Forces IMDSv2
-    instance_metadata_tags   = "enabled"  # Recommended to fully comply with best practices
+  metadata_options {
+    http_endpoint          = "enabled"
+    http_tokens            = "required" # Forces IMDSv2
+    instance_metadata_tags = "enabled"  # Recommended to fully comply with best practices
     # ------------------------
   }
   monitoring {
@@ -72,15 +72,15 @@ resource "aws_lb_target_group" "webtier-alb-tg" {
   vpc_id   = aws_vpc.vpc_project.id
 
   health_check {
-      path                = "/"          # The path to check (usually the application root)
-      protocol            = "HTTPS"      # Must match the target group protocol or HTTP for simplicity
-      port                = "traffic-port" # Use the port defined for the target group (443)
-      healthy_threshold   = 3            # Number of consecutive successful checks
-      unhealthy_threshold = 3            # Number of consecutive failed checks
-      timeout             = 5            # Time (in seconds) to wait for a response
-      interval            = 30           # Time (in seconds) between health checks
-      matcher             = "200-399"    # Expected HTTP response codes (allows redirects and success)
-    }
+    path                = "/"            # The path to check (usually the application root)
+    protocol            = "HTTPS"        # Must match the target group protocol or HTTP for simplicity
+    port                = "traffic-port" # Use the port defined for the target group (443)
+    healthy_threshold   = 3              # Number of consecutive successful checks
+    unhealthy_threshold = 3              # Number of consecutive failed checks
+    timeout             = 5              # Time (in seconds) to wait for a response
+    interval            = 30             # Time (in seconds) between health checks
+    matcher             = "200-399"      # Expected HTTP response codes (allows redirects and success)
+  }
 }
 
 resource "aws_lb_listener" "webtier-alb" {
@@ -89,7 +89,7 @@ resource "aws_lb_listener" "webtier-alb" {
   protocol          = "HTTPS"
   certificate_arn   = var.web_tier_certificate_arn
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  
+
 
   default_action {
     type             = "forward"

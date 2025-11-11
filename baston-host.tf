@@ -33,20 +33,20 @@ resource "aws_instance" "bastion-host" {
   subnet_id                   = aws_subnet.public-subnet-bastion-host.id
   iam_instance_profile        = aws_iam_instance_profile.bastion_host_profile.name
 
-metadata_options {
-  http_tokens              = "required" # Forces IMDSv2
-  http_endpoint            = "enabled"
-  instance_metadata_tags   = "enabled"
-}
+  metadata_options {
+    http_tokens            = "required" # Forces IMDSv2
+    http_endpoint          = "enabled"
+    instance_metadata_tags = "enabled"
+  }
 
-root_block_device {
-  encrypted = true
-}
+  root_block_device {
+    encrypted = true
+  }
 
 
-ebs_optimized = true
+  ebs_optimized = true
 
-monitoring = true
+  monitoring = true
 
 
   tags = {
