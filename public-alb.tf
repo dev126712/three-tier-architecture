@@ -25,29 +25,3 @@ resource "aws_wafv2_web_acl_association" "public_alb_waf_association" {
   resource_arn = aws_lb.public-application-load-balancer.arn
   web_acl_arn  = aws_wafv2_web_acl.web_acl.arn # Replace with your WAF ACL resource reference
 }
-
-resource "aws_wafv2_web_acl" "web_acl" {
-  name        = "Public-ALB-Web-ACL"
-  description = "WAF for Public Application Load Balancer"
-  scope       = "REGIONAL" # Must be REGIONAL for ALB association
-
-  default_action {
-    allow {} 
-  }
-
-
-  
-    
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "CommonRuleSetMetrics"
-      sampled_requests_enabled   = true
-    }
-  }
-
-  visibility_config {
-    cloudwatch_metrics_enabled = true
-    metric_name                = "PublicALBWebACL"
-    sampled_requests_enabled   = true
-  }
-}
