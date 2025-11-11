@@ -187,11 +187,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_bucket_lifecycle
     expiration {
       days = 365
     }
-  }
-
-  abort_incomplete_multipart_upload {
+ abort_incomplete_multipart_upload {
       days_after_initiation = 7 # Abort failed uploads older than 7 days
     }
+  }
+
+ 
 }
 
 # Fix CKV2_AWS_61 for Destination Bucket
@@ -207,11 +208,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_dest_bucket_life
     expiration {
       days = 365
     }
-  }
-
-  abort_incomplete_multipart_upload {
+abort_incomplete_multipart_upload {
       days_after_initiation = 7 
     }
+  }
+
+  
 }
 resource "aws_kms_key" "s3_bucket_key" {
   description             = "KMS Key for S3 Flow Logs Encryption"
