@@ -45,17 +45,13 @@ resource "aws_flow_log" "vpc_project_flow_log" {
   log_destination_type = "s3" 
   max_aggregation_interval = 60 
 }
-resource "aws_kms_key" "s3_bucket_key" {
-  description             = "KMS Key for S3 Flow Logs Encryption"
-  deletion_window_in_days = 10
-}
 
 resource "aws_sqs_queue" "s3_events_queue" {
   name                      = "vpc-flow-log-events-queue"
   delay_seconds             = 0
   max_message_size          = 262144
   message_retention_seconds = 345600
-}
+  kms_master_key_id         = "alias/aws/sqs"}
 
 resource "aws_s3_bucket_notification" "vpc_flow_log_notification" {
   bucket = aws_s3_bucket.vpc_flow_logs_bucket.id 
@@ -191,6 +187,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_bucket_lifecycle
       days = 365
     }
   }
+
+  abort_incomplete_multipart_upload {
+      days_after_initiation = 7 # Abort failed uploads older than 7 days
+    }
 }
 
 # Fix CKV2_AWS_61 for Destination Bucket
@@ -207,4 +207,32 @@ resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_dest_bucket_life
       days = 365
     }
   }
+
+  abort_incomplete_multipart_upload {
+      days_after_initiation = 7 
+    }
+}
+resource "aws_kms_key" "s3_bucket_key" {
+  description             = "KMS Key for S3 Flow Logs Encryption"
+  deletion_window_in_days = 10
+  
+  # --- FIX for CKV_AWS_7 ---
+  enable_key_rotation     = true
+  
+  # --- FIX for CKV2_AWS_64 ---
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions",
+        Effect = "Allow",
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root" # Requires data "aws_caller_identity" "current" {}
+        },
+        Action   = "kms:*",
+        Resource = "*"
+      },
+      # (Add statements for S3 and other services that need to use the key)
+    ]
+  })
 }
