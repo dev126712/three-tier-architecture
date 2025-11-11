@@ -27,12 +27,10 @@ resource "aws_s3_bucket" "access_logs_replica_bucket" {
   #  enabled = true
   #}
 
-  acl = "private"
 }
 
 resource "aws_s3_bucket" "vpc_flow_logs_dest_bucket" {
   bucket = "tf-project-vpc-flow-logs-dest-12345"
-  acl    = "private"
 }
 
 resource "aws_s3_bucket" "access_logs_bucket" {
@@ -99,7 +97,6 @@ resource "aws_iam_policy" "replication_policy" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # 1. Permissions on the Source Bucket (The Bucket itself)
       {
         Sid    = "SourceBucketPermissions"
         Effect = "Allow"
