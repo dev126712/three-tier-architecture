@@ -19,18 +19,24 @@ resource "aws_s3_bucket" "vpc_flow_logs_bucket" {
     Name = "VPC Flow Logs Destination"
   }
 }
+# Fix CKV_AWS_145 for Source Bucket
 resource "aws_s3_bucket_server_side_encryption_configuration" "vpc_flow_logs_bucket_encryption" {
-  # Link to the main S3 bucket resource
-  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id 
-
-  # --- New dedicated resource block ---
+  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id
   rule {
     apply_server_side_encryption_by_default {
-      # Setting AES256 for Flow Logs (which don't support KMS)
-      sse_algorithm = "AES256" 
+      sse_algorithm = "AES256" # Using SSE-S3 as Flow Logs don't support KMS
     }
   }
-  # ------------------------------------
+}
+
+# Fix CKV_AWS_145 for Destination Bucket
+resource "aws_s3_bucket_server_side_encryption_configuration" "vpc_flow_logs_dest_bucket_encryption" {
+  bucket = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
 }
 resource "aws_flow_log" "vpc_project_flow_log" {
   traffic_type    = "ALL" 
@@ -149,5 +155,56 @@ resource "aws_s3_bucket_versioning" "vpc_flow_logs_dest_bucket_versioning" {
 
   versioning_configuration {
     status = "Enabled"
+  }
+}
+
+# Fix CKV2_AWS_6 for Source Bucket
+resource "aws_s3_bucket_public_access_block" "vpc_flow_logs_bucket_pab" {
+  bucket                  = aws_s3_bucket.vpc_flow_logs_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# Fix CKV2_AWS_6 for Destination Bucket
+resource "aws_s3_bucket_public_access_block" "vpc_flow_logs_dest_bucket_pab" {
+  bucket                  = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+# Fix CKV2_AWS_61 for Source Bucket
+resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_bucket_lifecycle" {
+  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id
+  rule {
+    id     = "ArchiveOldLogs"
+    status = "Enabled"
+    # Transition to cheaper storage after 60 days
+    transition {
+      days          = 60
+      storage_class = "GLACIER"
+    }
+    # Delete logs after 365 days
+    expiration {
+      days = 365
+    }
+  }
+}
+
+# Fix CKV2_AWS_61 for Destination Bucket
+resource "aws_s3_bucket_lifecycle_configuration" "vpc_flow_logs_dest_bucket_lifecycle" {
+  bucket = aws_s3_bucket.vpc_flow_logs_dest_bucket.id
+  rule {
+    id     = "ArchiveOldLogsDest"
+    status = "Enabled"
+    transition {
+      days          = 60
+      storage_class = "GLACIER"
+    }
+    expiration {
+      days = 365
+    }
   }
 }
