@@ -51,7 +51,8 @@ resource "aws_sqs_queue" "s3_events_queue" {
   delay_seconds             = 0
   max_message_size          = 262144
   message_retention_seconds = 345600
-  kms_master_key_id         = "alias/aws/sqs"}
+  kms_master_key_id         = "alias/aws/sqs"
+}
 
 resource "aws_s3_bucket_notification" "vpc_flow_log_notification" {
   bucket = aws_s3_bucket.vpc_flow_logs_bucket.id 
