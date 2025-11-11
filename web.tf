@@ -65,26 +65,34 @@ resource "aws_launch_template" "Web-launch-template" {
 }
 
 
-# Create Webtier application load balancer target group
 resource "aws_lb_target_group" "webtier-alb-tg" {
   name     = "Webtier-ALB-TG"
   port     = 443
   protocol = "HTTPS"
   vpc_id   = aws_vpc.vpc_project.id
+
+  health_check {
+      path                = "/"          # The path to check (usually the application root)
+      protocol            = "HTTPS"      # Must match the target group protocol or HTTP for simplicity
+      port                = "traffic-port" # Use the port defined for the target group (443)
+      healthy_threshold   = 3            # Number of consecutive successful checks
+      unhealthy_threshold = 3            # Number of consecutive failed checks
+      timeout             = 5            # Time (in seconds) to wait for a response
+      interval            = 30           # Time (in seconds) between health checks
+      matcher             = "200-399"    # Expected HTTP response codes (allows redirects and success)
+    }
 }
 
-# Create Webtier application load balancer listener
 resource "aws_lb_listener" "webtier-alb" {
   load_balancer_arn = aws_lb.public-application-load-balancer.arn
-  port              = "80"
-  protocol          = "HTTP"
+  port              = "443"
+  protocol          = "HTTPS"
 
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.webtier-alb-tg.arn
   }
 }
-# Create Webtier autoscaling group
 resource "aws_autoscaling_group" "Webtier-ASG" {
   name                      = "Web-tier-ASG"
   max_size                  = 3
@@ -110,7 +118,6 @@ resource "aws_autoscaling_group" "Webtier-ASG" {
 
 }
 
-# Creating the AWS Cloudwatch Alarm that will scale up when CPU utilization increase.
 resource "aws_autoscaling_policy" "webtier-autoscaling-policy-up" {
   name                   = "webtier-autoscaling-policy-up"
   scaling_adjustment     = 1
