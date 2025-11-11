@@ -86,3 +86,10 @@ resource "aws_iam_role_policy_attachment" "replication_attach" {
   role       = aws_iam_role.replication_role.name
   policy_arn = aws_iam_policy.replication_policy.arn
 }
+
+resource "aws_s3_bucket" "vpc_flow_logs_dest_bucket" {
+  bucket = "tf-project-vpc-flow-logs-dest-12345"
+  # This bucket must be in a DIFFERENT region, often configured via a provider alias.
+  # provider = aws.dr
+  versioning { enabled = true }
+}
