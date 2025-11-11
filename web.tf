@@ -39,7 +39,7 @@ resource "aws_launch_template" "Web-launch-template" {
 
   network_interfaces {
     associate_public_ip_address = false
-    security_groups             = [aws_security_group.public-alb-security-group.id]
+    security_groups             = [aws_security_group.webtier-sg.id]
   }
 
  
