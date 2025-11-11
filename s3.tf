@@ -1,8 +1,6 @@
 resource "aws_s3_bucket" "vpc_flow_logs_bucket" {
   bucket = "tf-project-vpc-flow-logs-unique-name-12345"
-  versioning {
-    enabled = true
-  }
+ 
   replication_configuration {
     role = aws_iam_role.replication_role.arn
     rules {
@@ -93,4 +91,10 @@ resource "aws_s3_bucket" "vpc_flow_logs_dest_bucket" {
   # This bucket must be in a DIFFERENT region, often configured via a provider alias.
   # provider = aws.dr
   versioning { enabled = true }
+}
+resource "aws_s3_bucket_versioning" "vpc_flow_logs_bucket_versioning" {
+  bucket = aws_s3_bucket.vpc_flow_logs_bucket.id 
+  versioning_configuration {
+    status = "Enabled"
+  }
 }
