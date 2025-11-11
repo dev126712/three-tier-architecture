@@ -51,3 +51,8 @@ variable "instance_type" {
   default = "t2.micro"
   type    = string
 }
+
+variable "web_tier_certificate_arn" {
+default = "certificate.example"
+type = string
+}
