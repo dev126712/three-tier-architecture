@@ -20,8 +20,3 @@ resource "aws_lb" "public-application-load-balancer" {
     Name = "Entry App Load Balancer"
   }
 }
-# Assuming you have an existing WAF Web ACL named 'aws_wafv2_web_acl.web_acl'
-resource "aws_wafv2_web_acl_association" "public_alb_waf_association" {
-  resource_arn = aws_lb.public-application-load-balancer.arn
-  web_acl_arn  = aws_wafv2_web_acl.web_acl.arn # Replace with your WAF ACL resource reference
-}
