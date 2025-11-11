@@ -39,7 +39,6 @@ jobs:
         with:
           directory: .
           output_format: cli, json
-          soft_fail: true
           quiet: true
 
       - name: Terraform Plan
