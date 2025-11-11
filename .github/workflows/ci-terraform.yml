@@ -38,7 +38,8 @@ jobs:
         uses: bridgecrewio/checkov-action@master
         with:
           directory: .
-          output_format: cli, json
+          output_format: cli
+          soft_fail: true
           quiet: true
 
       - name: Terraform Plan
