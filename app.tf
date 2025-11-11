@@ -75,6 +75,8 @@ resource "aws_lb_listener" "apptier-alb" {
   load_balancer_arn = aws_lb.private-internal-application-load-balancer.arn
   port              = "443"
   protocol          = "HTTPS"
+  certificate_arn   = var.web_tier_certificate_arn
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
 
   default_action {
     type             = "forward"
