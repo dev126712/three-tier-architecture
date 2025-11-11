@@ -53,6 +53,6 @@ variable "instance_type" {
 }
 
 variable "web_tier_certificate_arn" {
-  default = "certificate.example"
+  default = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
   type    = string
 }
