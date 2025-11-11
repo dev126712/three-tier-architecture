@@ -29,7 +29,6 @@ resource "aws_wafv2_web_acl" "web_acl" {
   name        = "Public-ALB-Web-ACL"
   description = "WAF for Public Application Load Balancer"
   scope       = "REGIONAL" # Must be REGIONAL for ALB association
-  region      = "us-east-1" # Set your actual region or use a data source
 
   default_action {
     allow {} # Default is to allow traffic that doesn't match a rule
