@@ -35,11 +35,11 @@ resource "aws_wafv2_web_acl" "web_acl" {
 
   rule {
     name     = "AWSManagedRulesLog4jRuleSet"
-    priority = 1 
+    priority = 1
     statement {
       managed_rule_group_statement {
         vendor_name = "AWS"
-        name        = "AWSManagedRulesLog4jRuleSet" 
+        name        = "AWSManagedRulesLog4jRuleSet"
       }
     }
     action {
@@ -72,7 +72,7 @@ resource "aws_wafv2_web_acl" "web_acl" {
   }
 
 
- 
+
 
   rule {
     name     = "AWSManagedRulesCommonRuleSet"
