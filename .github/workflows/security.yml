@@ -25,3 +25,19 @@ jobs:
         output_format: cli
         soft_fail: true
         quiet: true  
+
+  secirity-scan-on-terraform-files:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write 
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v4
+
+    - name: Run Checkov Security Scan on yml files
+      uses: bridgecrewio/checkov-action@master
+      with:
+        directory:  .
+        output_format: cli
+        soft_fail: true
+        quiet: true
