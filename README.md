@@ -1,1 +1,47 @@
 ![alt text](https://github.com/dev126712/three-tier-architecture/blob/6235857785ad7c407f1f26ef24c3ce65f9fb1e3f/Untitled%20Diagram.drawio.png)
+
+# 1 Infrastructure ci
+````
+name: Deploy Terraform
+on: 
+  push:
+    paths: 
+      - '**.tf'
+      - '.github/workflows/ci-terraform.yml'
+permissions:
+  contents: read
+  packages: read
+  pull-requests: write
+
+jobs:
+````
+### Terraform check 
+````
+verify:
+    env:
+        AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+        AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform fmt
+        run: terraform fmt
+        
+      - name: Terraform validate
+        run: terraform validate 
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive  
+
+      - name: Terraform Plan
+        run: terraform plan  
+
+````
