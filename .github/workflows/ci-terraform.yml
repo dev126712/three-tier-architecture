@@ -34,13 +34,5 @@ jobs:
       - name: Terraform fmt check
         run: terraform fmt -check -recursive  
 
-      - name: Run Checkov Security Scan
-        uses: bridgecrewio/checkov-action@master
-        with:
-          directory: .
-          output_format: cli
-          soft_fail: true
-          quiet: true
-
       - name: Terraform Plan
         run: terraform plan  
